@@ -14,8 +14,9 @@ let greeter = new Greeter("world");
 
 type NetworkTime = number
 type NetworkID = string
-type MeshAPI = any // fixme
+type NetworkMessage = string
 
+type MeshAPI = any // fixme
 
 class pkgStateUpdate {
     TS: NetworkTime
@@ -29,6 +30,11 @@ class pkgStateUpdateReceivedAck {
 class pkg {
     Type: string
     Content: any // json.RawMessage
+
+    constructor(Type: string, Content: any) {
+        this.Type = Type
+        this.Content = Content
+    }
 }
 
 class debugDataStruct {
@@ -95,6 +101,10 @@ class peerToPeerSyncer {
 class PeerUserState {
     Coordinates: number[]
     Message: string
+
+    constructor(Message: string) {
+        this.Message = Message
+    }
 }
 
 class peerState {
@@ -124,24 +134,27 @@ class SimplePeer1 {
     // HandleAppearedPeer implements crowd.MeshActor
     handleAppearedPeer(id: NetworkID) {
         this.syncers[id] = new peerToPeerSyncer((d: pkgStateUpdate) => {
-            bt, err:= json.Marshal(d)
-            if err != nil {
-                console.log(err.Error())
+
+            let bt = JSON.stringify(d)  
+            if (bt == null) {
+                console.log("err.Error()")
                 return
             }
-            p:= pkg{ Type: "pkgStateUpdate", Content: bt }
-            bt2, err := json.Marshal(p)
-            if err != nil {
-                console.log(err.Error())
+
+            let p = new pkg("pkgStateUpdate", bt) 
+
+            let bt2 = JSON.stringify(p)
+            if (bt2 == null) {
+                console.log("err.Error()")
                 return
             }
             this.api.SendMessage(id, bt2)
         })
 
-        if (len(this.meshNetworkState) > 0) {
-            serialisedState, err := json.Marshal(this.meshNetworkState)
-            if err != nil {
-                console.log(err.Error())
+        if (Object.keys(this.meshNetworkState).length > 0) {
+            let serialisedState = JSON.stringify(this.meshNetworkState)
+            if (serialisedState == null) {
+                console.log("err.Error()")
                 return
             }
 
@@ -163,35 +176,43 @@ class SimplePeer1 {
 
 
     handleNewIncomingState(sourceID: NetworkID, update: pkgStateUpdate) {
-        newNetworkState:= make(map[NetworkID]peerState)
-        somethingChanged:= false
-        if err := json.Unmarshal(update.Data, & newNetworkState); err == nil {
-            for id, newPeerState := range newNetworkState {
-                if existingPeerState, ok := this.meshNetworkState[id]; !ok {
+        let newNetworkState = JSON.parse(update.Data) as { [key: string]: peerState }
+        let somethingChanged = false
+
+        if (newNetworkState != null) {
+            for (let key in newNetworkState) {
+                let newPeerState = newNetworkState[key]
+
+                let existingPeerState = this.meshNetworkState[key]
+
+                if (existingPeerState == null) {
                     somethingChanged = true
-                    this.meshNetworkState[id] = newPeerState
+                    this.meshNetworkState[key] = newPeerState
                 } else {
-                    if existingPeerState.UpdateTS < newPeerState.UpdateTS {
+                    if (existingPeerState.UpdateTS < newPeerState.UpdateTS) {
                         somethingChanged = true
-                        this.meshNetworkState[id] = newPeerState
+                        this.meshNetworkState[key] = newPeerState
                     }
                 }
             }
         } else {
-            console.log(err.Error())
+            console.log("err.Error()")
             return
         }
 
         if (somethingChanged) {
             this.sendDbgData()
-            serialisedState, err := json.Marshal(this.meshNetworkState)
-            if err != nil {
-                console.log(err.Error())
+
+            let serialisedState = JSON.stringify(this.meshNetworkState)
+
+            if (serialisedState == null) {
+                console.log("err.Error()")
                 return
             }
 
-            for id, syncer := range this.syncers {
-                if sourceID == id {
+            for (let key in this.syncers) {
+                let syncer = this.syncers[key]
+                if (sourceID == key) {
                     continue
                 }
                 syncer.updateData(serialisedState)
@@ -200,35 +221,40 @@ class SimplePeer1 {
     }
 
     handleMessage(id: NetworkID, data: NetworkMessage) {
-        inpkg:= & pkg{ }
-        err:= json.Unmarshal(data, inpkg)
-        if err != nil {
-            console.log(err.Error())
+        // let inpkg = new pkg()
+        let inpkg = JSON.parse(data) as pkg // Unmarshal
+
+        if (inpkg == undefined || null) {
+            console.log("err.Error()")
             return
         }
 
-        switch inpkg.Type {
+        switch (inpkg.Type) {
             case "pkgStateUpdate":
-                update:= pkgStateUpdate{ }
-                json.Unmarshal(inpkg.Content, & update)
+
+                let update = JSON.parse(inpkg.Content) as pkgStateUpdate // Unmarshal
+
                 this.handleNewIncomingState(id, update)
 
-                ack:= pkgStateUpdateReceivedAck{ }
+                let ack = new pkgStateUpdateReceivedAck()
                 ack.TS = update.TS
-                ser, _ := json.Marshal(ack)
-                p:= pkg{ Type: "pkgStateUpdateReceivedAck", Content: ser }
-                bt2, err := json.Marshal(p)
-                if err != nil {
-                    console.log(err.Error())
+
+                let ser = JSON.stringify(ack) // Marshal
+                let p1 = new pkg("pkgStateUpdateReceivedAck", ser)
+
+                let bt2 = JSON.stringify(p1)
+                if (bt2 == (undefined || null)) {
+                    console.log("err.Error()")
                     return
                 }
                 this.api.SendMessage(id, bt2)
                 break
+
             case "pkgStateUpdateReceivedAck":
-                if p, ok := this.syncers[id]; ok {
-                    ack:= pkgStateUpdateReceivedAck{ }
-                    json.Unmarshal(inpkg.Content, & ack)
-                    p.handleAck(ack)
+                let p2 = this.syncers[id]
+                if (p2 != (undefined || null)) {
+                    let ack = JSON.parse(inpkg.Content) as pkgStateUpdateReceivedAck
+                    p2.handleAck(ack)
                 }
                 break
         }
@@ -237,16 +263,16 @@ class SimplePeer1 {
 
     handleTimeTick(ts: NetworkTime) {
         this.currentTS = ts
-        for _, s := range this.syncers {
-            s.tick(ts)
+        for (let key in this.syncers) {
+            let syncer = this.syncers[key]
+            syncer.tick(ts)
         }
 
-        if this.currentTS > this.nextSendTime {
-            this.nextSendTime = this.currentTS + NetworkTime(3000000 + rand.Int63n(5000000))
-            this.SetState(PeerUserState{ Message: fmt.Sprintf("%v says %v", this.Label, this.currentTS / 1000) })
+        if (this.currentTS > this.nextSendTime) {
+            this.nextSendTime = this.currentTS + (3000000 + randomIntFromInterval(0, 5000000))
+            this.SetState(new PeerUserState(this.Label + " says " + this.currentTS / 1000))
         }
     }
-
 
     // NewSimplePeer1 returns new SimplePeer
     constructor(label: string, api: MeshAPI) {
@@ -267,8 +293,6 @@ class SimplePeer1 {
         api.RegisterTimeTickHandler(func(ts NetworkTime) {
             ret.handleTimeTick(ts)
         })
-
-        return ret
     }
 
 
@@ -285,4 +309,8 @@ class SimplePeer1 {
         }
     }
 
+}
+
+function randomIntFromInterval(min: number, max: number) {
+    return Math.floor(Math.random()*(max-min+1)+min);
 }
