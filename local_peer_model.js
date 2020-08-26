@@ -1,22 +1,30 @@
-class pkgStateUpdate {
-}
-class pkgStateUpdateReceivedAck {
-}
-class pkg {
-    constructor(Type, Content) {
+var pkgStateUpdate = /** @class */ (function () {
+    function pkgStateUpdate() {
+    }
+    return pkgStateUpdate;
+}());
+var pkgStateUpdateReceivedAck = /** @class */ (function () {
+    function pkgStateUpdateReceivedAck() {
+    }
+    return pkgStateUpdateReceivedAck;
+}());
+var pkg = /** @class */ (function () {
+    function pkg(Type, Content) {
         this.Type = Type;
         this.Content = Content;
     }
-}
-class debugDataStruct {
-    constructor(MyID, MyTS, PeersState) {
+    return pkg;
+}());
+var debugDataStruct = /** @class */ (function () {
+    function debugDataStruct(MyID, MyTS, PeersState) {
         this.MyID = MyID;
         this.MyTS = MyTS;
         this.PeersState = PeersState;
     }
-}
-class peerToPeerSyncer {
-    constructor(sender) {
+    return debugDataStruct;
+}());
+var peerToPeerSyncer = /** @class */ (function () {
+    function peerToPeerSyncer(sender) {
         this.lastAttemptTS = 0;
         this.lastTickTime = 0;
         this.synced = true;
@@ -24,100 +32,105 @@ class peerToPeerSyncer {
         this.sender = sender;
         this.updatePkg = new pkgStateUpdate();
     }
-    updateData(data) {
+    peerToPeerSyncer.prototype.updateData = function (data) {
         this.synced = false;
         this.lastAttemptTS = 0;
         this.updatePkg.Data = data;
         this.updatePkg.TS = this.lastTickTime;
         this.tick(this.lastTickTime);
-    }
-    tick(ts) {
+    };
+    peerToPeerSyncer.prototype.tick = function (ts) {
         if (!this.synced && ts - this.lastAttemptTS >= this.delay) {
             this.lastAttemptTS = ts;
             this.sender(this.updatePkg);
         }
         this.lastTickTime = ts;
-    }
-    handleAck(ackPkg) {
+    };
+    peerToPeerSyncer.prototype.handleAck = function (ackPkg) {
         if (this.synced) {
             return;
         }
         if (ackPkg.TS == this.updatePkg.TS) {
             this.synced = true;
         }
-    }
-}
+    };
+    return peerToPeerSyncer;
+}());
 // PeerUserState contains user data
-class PeerUserState {
-    constructor(Message) {
+var PeerUserState = /** @class */ (function () {
+    function PeerUserState(Message) {
         this.Message = Message;
     }
-}
-class peerState {
-    constructor(UserState, UpdateTS) {
+    return PeerUserState;
+}());
+var peerState = /** @class */ (function () {
+    function peerState(UserState, UpdateTS) {
         this.UserState = UserState;
         this.UpdateTS = UpdateTS;
     }
-}
+    return peerState;
+}());
 // SimplePeer1 provides simplest flood peer strategy
-class SimplePeer1 {
+var SimplePeer1 = /** @class */ (function () {
     // NewSimplePeer1 returns new SimplePeer
-    constructor(label, api) {
+    function SimplePeer1(label, api) {
+        var _this = this;
         this.api = api;
         this.Label = label;
         this.syncers = {};
         this.meshNetworkState = {};
-        api.RegisterMessageHandler((id, data) => {
-            this.handleMessage(id, data);
+        api.RegisterMessageHandler(function (id, data) {
+            _this.handleMessage(id, data);
         });
-        api.RegisterPeerAppearedHandler((id) => {
-            this.handleAppearedPeer(id);
+        api.RegisterPeerAppearedHandler(function (id) {
+            _this.handleAppearedPeer(id);
         });
-        api.RegisterPeerDisappearedHandler((id) => {
-            this.handleDisappearedPeer(id);
+        api.RegisterPeerDisappearedHandler(function (id) {
+            _this.handleDisappearedPeer(id);
         });
-        api.RegisterTimeTickHandler((ts) => {
-            this.handleTimeTick(ts);
+        api.RegisterTimeTickHandler(function (ts) {
+            _this.handleTimeTick(ts);
         });
     }
     // HandleAppearedPeer implements crowd.MeshActor
-    handleAppearedPeer(id) {
-        this.syncers[id] = new peerToPeerSyncer((d) => {
-            let bt = JSON.stringify(d);
+    SimplePeer1.prototype.handleAppearedPeer = function (id) {
+        var _this = this;
+        this.syncers[id] = new peerToPeerSyncer(function (d) {
+            var bt = JSON.stringify(d);
             if (bt == null) {
                 console.log("err.Error()");
                 return;
             }
-            let p = new pkg("pkgStateUpdate", bt);
-            let bt2 = JSON.stringify(p);
+            var p = new pkg("pkgStateUpdate", bt);
+            var bt2 = JSON.stringify(p);
             if (bt2 == null) {
                 console.log("err.Error()");
                 return;
             }
-            this.api.SendMessage(id, bt2);
+            _this.api.SendMessage(id, bt2);
         });
         if (Object.keys(this.meshNetworkState).length > 0) {
-            let serialisedState = JSON.stringify(this.meshNetworkState);
+            var serialisedState = JSON.stringify(this.meshNetworkState);
             if (serialisedState == null) {
                 console.log("err.Error()");
                 return;
             }
             this.syncers[id].updateData(serialisedState);
         }
-    }
-    handleDisappearedPeer(id) {
+    };
+    SimplePeer1.prototype.handleDisappearedPeer = function (id) {
         delete this.syncers[id];
-    }
-    sendDbgData() {
+    };
+    SimplePeer1.prototype.sendDbgData = function () {
         this.api.SendDebugData(new debugDataStruct(this.api.GetMyID(), this.currentTS, this.meshNetworkState));
-    }
-    handleNewIncomingState(sourceID, update) {
-        let newNetworkState = JSON.parse(update.Data);
-        let somethingChanged = false;
+    };
+    SimplePeer1.prototype.handleNewIncomingState = function (sourceID, update) {
+        var newNetworkState = JSON.parse(update.Data);
+        var somethingChanged = false;
         if (newNetworkState != null) {
-            for (let key in newNetworkState) {
-                let newPeerState = newNetworkState[key];
-                let existingPeerState = this.meshNetworkState[key];
+            for (var key in newNetworkState) {
+                var newPeerState = newNetworkState[key];
+                var existingPeerState = this.meshNetworkState[key];
                 if (existingPeerState == null) {
                     somethingChanged = true;
                     this.meshNetworkState[key] = newPeerState;
@@ -136,36 +149,36 @@ class SimplePeer1 {
         }
         if (somethingChanged) {
             this.sendDbgData();
-            let serialisedState = JSON.stringify(this.meshNetworkState);
+            var serialisedState = JSON.stringify(this.meshNetworkState);
             if (serialisedState == null) {
                 console.log("err.Error()");
                 return;
             }
-            for (let key in this.syncers) {
-                let syncer = this.syncers[key];
+            for (var key in this.syncers) {
+                var syncer = this.syncers[key];
                 if (sourceID == key) {
                     continue;
                 }
                 syncer.updateData(serialisedState);
             }
         }
-    }
-    handleMessage(id, data) {
+    };
+    SimplePeer1.prototype.handleMessage = function (id, data) {
         // let inpkg = new pkg()
-        let inpkg = JSON.parse(data); // Unmarshal
+        var inpkg = JSON.parse(data); // Unmarshal
         if (inpkg == null) {
             console.log("err.Error()");
             return;
         }
         switch (inpkg.Type) {
             case "pkgStateUpdate":
-                let update = JSON.parse(inpkg.Content); // Unmarshal
+                var update = JSON.parse(inpkg.Content); // Unmarshal
                 this.handleNewIncomingState(id, update);
-                let ack = new pkgStateUpdateReceivedAck();
+                var ack = new pkgStateUpdateReceivedAck();
                 ack.TS = update.TS;
-                let ser = JSON.stringify(ack); // Marshal
-                let p1 = new pkg("pkgStateUpdateReceivedAck", ser);
-                let bt2 = JSON.stringify(p1);
+                var ser = JSON.stringify(ack); // Marshal
+                var p1 = new pkg("pkgStateUpdateReceivedAck", ser);
+                var bt2 = JSON.stringify(p1);
                 if (bt2 == null) {
                     console.log("err.Error()");
                     return;
@@ -173,36 +186,37 @@ class SimplePeer1 {
                 this.api.SendMessage(id, bt2);
                 break;
             case "pkgStateUpdateReceivedAck":
-                let p2 = this.syncers[id];
+                var p2 = this.syncers[id];
                 if (p2 != null) {
-                    let ack = JSON.parse(inpkg.Content);
-                    p2.handleAck(ack);
+                    var ack_1 = JSON.parse(inpkg.Content);
+                    p2.handleAck(ack_1);
                 }
                 break;
         }
-    }
-    handleTimeTick(ts) {
+    };
+    SimplePeer1.prototype.handleTimeTick = function (ts) {
         this.currentTS = ts;
-        for (let key in this.syncers) {
-            let syncer = this.syncers[key];
+        for (var key in this.syncers) {
+            var syncer = this.syncers[key];
             syncer.tick(ts);
         }
         if (this.currentTS > this.nextSendTime) {
             this.nextSendTime = this.currentTS + (3000000 + randomIntFromInterval(0, 5000000));
             this.SetState(new PeerUserState(this.Label + " says " + this.currentTS / 1000));
         }
-    }
+    };
     // SetState updates this peer user data
-    SetState(p) {
+    SimplePeer1.prototype.SetState = function (p) {
         this.meshNetworkState[this.api.GetMyID()] = new peerState(p, this.currentTS);
         this.sendDbgData();
-        let serialisedState = this.meshNetworkState;
-        for (let key in this.syncers) {
-            let syncer = this.syncers[key];
+        var serialisedState = this.meshNetworkState;
+        for (var key in this.syncers) {
+            var syncer = this.syncers[key];
             syncer.updateData(serialisedState);
         }
-    }
-}
+    };
+    return SimplePeer1;
+}());
 function randomIntFromInterval(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
 }
