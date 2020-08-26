@@ -224,7 +224,7 @@ class SimplePeer1 {
         // let inpkg = new pkg()
         let inpkg = JSON.parse(data) as pkg // Unmarshal
 
-        if (inpkg == undefined || null) {
+        if (inpkg == null) {
             console.log("err.Error()")
             return
         }
@@ -243,7 +243,7 @@ class SimplePeer1 {
                 let p1 = new pkg("pkgStateUpdateReceivedAck", ser)
 
                 let bt2 = JSON.stringify(p1)
-                if (bt2 == (undefined || null)) {
+                if (bt2 == null) {
                     console.log("err.Error()")
                     return
                 }
@@ -252,7 +252,7 @@ class SimplePeer1 {
 
             case "pkgStateUpdateReceivedAck":
                 let p2 = this.syncers[id]
-                if (p2 != (undefined || null)) {
+                if (p2 != null) {
                     let ack = JSON.parse(inpkg.Content) as pkgStateUpdateReceivedAck
                     p2.handleAck(ack)
                 }
