@@ -135,13 +135,13 @@ class SimplePeer1 {
     handleAppearedPeer(id: NetworkID) {
         this.syncers[id] = new peerToPeerSyncer((d: pkgStateUpdate) => {
 
-            let bt = JSON.stringify(d)  
+            let bt = JSON.stringify(d)
             if (bt == null) {
                 console.log("err.Error()")
                 return
             }
 
-            let p = new pkg("pkgStateUpdate", bt) 
+            let p = new pkg("pkgStateUpdate", bt)
 
             let bt2 = JSON.stringify(p)
             if (bt2 == null) {
@@ -260,7 +260,6 @@ class SimplePeer1 {
         }
     }
 
-
     handleTimeTick(ts: NetworkTime) {
         this.currentTS = ts
         for (let key in this.syncers) {
@@ -281,20 +280,19 @@ class SimplePeer1 {
         this.syncers = {}
         this.meshNetworkState = {}
 
-        api.RegisterMessageHandler(func(id NetworkID, data NetworkMessage) {
-            ret.handleMessage(id, data)
+        api.RegisterMessageHandler((id: NetworkID, data: NetworkMessage) => {
+            this.handleMessage(id, data)
         })
-        api.RegisterPeerAppearedHandler(func(id NetworkID) {
-            ret.handleAppearedPeer(id)
+        api.RegisterPeerAppearedHandler((id: NetworkID) => {
+            this.handleAppearedPeer(id)
         })
-        api.RegisterPeerDisappearedHandler(func(id NetworkID) {
-            ret.handleDisappearedPeer(id)
+        api.RegisterPeerDisappearedHandler((id: NetworkID) => {
+            this.handleDisappearedPeer(id)
         })
-        api.RegisterTimeTickHandler(func(ts NetworkTime) {
-            ret.handleTimeTick(ts)
+        api.RegisterTimeTickHandler((ts: NetworkTime) => {
+            this.handleTimeTick(ts)
         })
     }
-
 
     // SetState updates this peer user data
     SetState(p: PeerUserState) {
@@ -312,5 +310,5 @@ class SimplePeer1 {
 }
 
 function randomIntFromInterval(min: number, max: number) {
-    return Math.floor(Math.random()*(max-min+1)+min);
+    return Math.floor(Math.random() * (max - min + 1) + min);
 }
