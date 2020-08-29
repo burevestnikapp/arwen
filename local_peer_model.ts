@@ -44,8 +44,6 @@ class peerToPeerSyncer {
 
     updatePkg: pkgStateUpdate
 
-
-
     updateData(data: any) {
         this.synced = false
         this.lastAttemptTS = 0
@@ -82,7 +80,6 @@ class peerToPeerSyncer {
     }
 }
 
-
 // PeerUserState contains user data
 class PeerUserState {
     Coordinates: number[]
@@ -114,8 +111,6 @@ class SimplePeer1 {
     currentTS: NetworkTime
 
     nextSendTime: NetworkTime
-
-
 
     // HandleAppearedPeer implements crowd.MeshActor
     handleAppearedPeer(id: NetworkID) {
@@ -159,7 +154,6 @@ class SimplePeer1 {
             this.meshNetworkState
         ))
     }
-
 
     handleNewIncomingState(sourceID: NetworkID, update: pkgStateUpdate) {
         let newNetworkState = JSON.parse(update.Data) as { [key: string]: peerState }
