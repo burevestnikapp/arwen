@@ -2,7 +2,21 @@ type NetworkTime = number
 type NetworkID = string
 type NetworkMessage = string
 
-type MeshAPI = any // fixme
+interface MeshAPI {
+
+    GetMyID(): string
+
+    SendMessage(id: string, data: string): void
+
+    RegisterMessageHandler(reg: ((id: NetworkID, data: NetworkMessage) => void)): void
+
+    RegisterPeerAppearedHandler(reg: (id: NetworkID) => void): void
+
+    RegisterPeerDisappearedHandler(reg: (id: NetworkID) => void): void
+
+    RegisterTimeTickHandler(reg: (ts: NetworkTime) => void): void
+
+}
 
 class pkgStateUpdate {
     TS: NetworkTime
@@ -147,12 +161,12 @@ class SimplePeer1 {
         delete this.syncers[id]
     }
 
-    sendDbgData() {
-        this.api.SendDebugData(new debugDataStruct(
-            this.api.GetMyID(),
-            this.currentTS,
-            this.meshNetworkState
-        ))
+    sendDbgData() { // pass
+    //     this.api.SendDebugData(new debugDataStruct(
+    //         this.api.GetMyID(),
+    //         this.currentTS,
+    //         this.meshNetworkState
+    //     ))
     }
 
     handleNewIncomingState(sourceID: NetworkID, update: pkgStateUpdate) {

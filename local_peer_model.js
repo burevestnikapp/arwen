@@ -109,7 +109,11 @@ class SimplePeer1 {
         delete this.syncers[id];
     }
     sendDbgData() {
-        this.api.SendDebugData(new debugDataStruct(this.api.GetMyID(), this.currentTS, this.meshNetworkState));
+        //     this.api.SendDebugData(new debugDataStruct(
+        //         this.api.GetMyID(),
+        //         this.currentTS,
+        //         this.meshNetworkState
+        //     ))
     }
     handleNewIncomingState(sourceID, update) {
         let newNetworkState = JSON.parse(update.Data);
