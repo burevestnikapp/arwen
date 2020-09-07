@@ -76,7 +76,7 @@ class SimplePeer1 {
         //     this.handleDisappearedPeer(id)
         // })
         // api.RegisterTimeTickHandler((ts: NetworkTime) => {
-        //     this.handleTimeTick(ts)
+        //     this.(ts)
         // })
     }
     // HandleAppearedPeer implements crowd.MeshActor
@@ -214,7 +214,12 @@ class SimplePeer1 {
 function randomIntFromInterval(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
 }
-let simplePeerInstance;
+var simplePeerInstance;
 function letsgo(label, api) {
     simplePeerInstance = new SimplePeer1(label, api);
 }
+// function tick(ts: NetworkTime) {
+//   simplePeerInstance.tick(ts)
+//   return "ok js' ticked " + ts
+// }
+var tick = simplePeerInstance.handleTimeTick;
