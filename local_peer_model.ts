@@ -2,7 +2,7 @@ type NetworkTime = number
 type NetworkID = string
 type NetworkMessage = string
 
-// interface GoMeshAPI {
+// interface GoMeshAPI { // is now separated into Swifts APIFuncs and APICallbacks
 //   GetMyID(): string
 //   SendMessage(id: string, data: string): void
 //   RegisterMessageHandler(callback: (id: NetworkID, data: NetworkMessage) => void): void
@@ -133,7 +133,7 @@ class peerState {
 }
 
 // SimplePeer1 provides simplest flood peer strategy
-class SimplePeer1 {
+class SimplePeer1 implements SwiftMeshAPICallbacks {
 
     api: SwiftMeshAPIFuncs
     // logger:  *log.Logger
@@ -146,6 +146,7 @@ class SimplePeer1 {
     nextSendTime: NetworkTime
 
     // HandleAppearedPeer implements crowd.MeshActor
+    foundPeer(peerID: NetworkID) { this.handleAppearedPeer(peerID) }  
     handleAppearedPeer(id: NetworkID) {
         this.syncers[id] = new peerToPeerSyncer((d: pkgStateUpdate) => {
 
@@ -176,6 +177,7 @@ class SimplePeer1 {
         }
     }
 
+    lostPeer(peerID: NetworkID) { this.handleDisappearedPeer(peerID) }
     handleDisappearedPeer(id: NetworkID) {
         delete this.syncers[id]
     }
@@ -233,6 +235,7 @@ class SimplePeer1 {
         }
     }
 
+    didReceiveFromPeer(peerID: NetworkID, data: NetworkMessage) { this.handleMessage(peerID, data) }
     handleMessage(id: NetworkID, data: NetworkMessage) {
         // let inpkg = new pkg()
         let inpkg = JSON.parse(data) as pkg // Unmarshal
@@ -273,6 +276,7 @@ class SimplePeer1 {
         }
     }
 
+    tick(ts: NetworkTime) { this.handleTimeTick(ts) }
     handleTimeTick(ts: NetworkTime) {
         this.currentTS = ts
         for (let key in this.syncers) {
