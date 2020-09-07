@@ -214,12 +214,24 @@ class SimplePeer1 {
 function randomIntFromInterval(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
 }
-var simplePeerInstance;
+let simplePeerInstance;
 function letsgo(label, api) {
     simplePeerInstance = new SimplePeer1(label, api);
+    return simplePeerInstance;
 }
-// function tick(ts: NetworkTime) {
-//   simplePeerInstance.tick(ts)
-//   return "ok js' ticked " + ts
-// }
-var tick = simplePeerInstance.handleTimeTick;
+function tick(ts) {
+    if (!!simplePeerInstance) {
+        simplePeerInstance.handleTimeTick(ts);
+        return "ok js' ticked " + ts;
+    }
+    return "tick can't find simplePeerInstance ";
+}
+function didReceiveFromPeer(peerID, data) {
+    simplePeerInstance.handleMessage(peerID, data);
+}
+function foundPeer(peerID) {
+    simplePeerInstance.handleAppearedPeer(peerID);
+}
+function lostPeer(peerID) {
+    simplePeerInstance.handleDisappearedPeer(peerID);
+}

@@ -335,16 +335,32 @@ function randomIntFromInterval(min: number, max: number) {
   return Math.floor(Math.random() * (max - min + 1) + min);
 }
 
-var simplePeerInstance: SimplePeer1
+let simplePeerInstance: SimplePeer1
 
 function letsgo(label: string, api: SwiftMeshAPIFuncs) {
   simplePeerInstance = new SimplePeer1(label, api)
+  return simplePeerInstance
 }
 
-// function tick(ts: NetworkTime) {
-//   simplePeerInstance.tick(ts)
+function tick(ts: NetworkTime) {
 
-//   return "ok js' ticked " + ts
-// }
+  if (!!simplePeerInstance) {
+    simplePeerInstance.handleTimeTick(ts)
 
-var tick = simplePeerInstance.handleTimeTick
+    return "ok js' ticked " + ts
+  }
+
+  return "tick can't find simplePeerInstance "
+}
+
+function didReceiveFromPeer(peerID: NetworkID, data: NetworkMessage) {
+  simplePeerInstance.handleMessage(peerID, data)
+}
+
+function foundPeer(peerID: NetworkID) {
+  simplePeerInstance.handleAppearedPeer(peerID)
+}
+
+function lostPeer(peerID: NetworkID) {
+  simplePeerInstance.handleDisappearedPeer(peerID)
+}
