@@ -141,6 +141,11 @@ class SimplePeer1 implements SwiftMeshAPICallbacks {
     syncers: { [key: string]: peerToPeerSyncer } // key: NetworkID
 
     meshNetworkState: { [key: string]: peerState } // key: NetworkID
+
+    // easyMeshNetworkState(): { [key: string]: string } { // returns { [key: NetworkID]: NetworkMessage }
+    //   this.meshNetworkState.map()
+    // }
+
     currentTS: NetworkTime
 
     nextSendTime: NetworkTime
