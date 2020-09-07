@@ -311,6 +311,7 @@ class SimplePeer1 implements SwiftMeshAPICallbacks {
     }
 
     // SetState updates this peer user data
+    isendmessage(text: NetworkMessage) { this.SetState(new PeerUserState(text)) }
     SetState(p: PeerUserState) {
         this.meshNetworkState[this.api.myID()] = new peerState(p, this.currentTS)
         this.sendDbgData()

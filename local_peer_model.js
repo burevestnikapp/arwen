@@ -200,6 +200,7 @@ class SimplePeer1 {
         }
     }
     // SetState updates this peer user data
+    isendmessage(text) { this.SetState(new PeerUserState(text)); }
     SetState(p) {
         this.meshNetworkState[this.api.myID()] = new peerState(p, this.currentTS);
         this.sendDbgData();
