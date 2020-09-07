@@ -2,19 +2,37 @@ type NetworkTime = number
 type NetworkID = string
 type NetworkMessage = string
 
-interface MeshAPI {
+// interface GoMeshAPI {
+//   GetMyID(): string
+//   SendMessage(id: string, data: string): void
+//   RegisterMessageHandler(callback: (id: NetworkID, data: NetworkMessage) => void): void
+//   RegisterPeerAppearedHandler(callback: (id: NetworkID) => void): void
+//   RegisterPeerDisappearedHandler(callback: (id: NetworkID) => void): void
+//   RegisterTimeTickHandler(callback: (ts: NetworkTime) => void): void
+// }
 
-    GetMyID(): string
+interface SwiftMeshAPIFuncs {
 
-    SendMessage(id: string, data: string): void
+  /// 0
+  myID(): NetworkID
 
-    RegisterMessageHandler(reg: ((id: NetworkID, data: NetworkMessage) => void)): void
+  /// 4
+  sendToPeer(peerID: NetworkID, data: NetworkMessage): void
 
-    RegisterPeerAppearedHandler(reg: (id: NetworkID) => void): void
+}
 
-    RegisterPeerDisappearedHandler(reg: (id: NetworkID) => void): void
+interface SwiftMeshAPICallbacks {
 
-    RegisterTimeTickHandler(reg: (ts: NetworkTime) => void): void
+  /// 1
+  tick(ts: NetworkTime): void
+
+  /// 2
+  foundPeer(peerID: NetworkID): void
+  /// 3
+  lostPeer(peerID: NetworkID): void
+
+  /// 5
+  didReceiveFromPeer(peerID: NetworkID, data: NetworkMessage): void
 
 }
 
@@ -116,7 +134,8 @@ class peerState {
 
 // SimplePeer1 provides simplest flood peer strategy
 class SimplePeer1 {
-    api: MeshAPI
+
+    api: SwiftMeshAPIFuncs
     // logger:  *log.Logger
     Label: string
     syncers: { [key: string]: peerToPeerSyncer } // key: NetworkID
@@ -143,7 +162,7 @@ class SimplePeer1 {
                 console.log("err.Error()")
                 return
             }
-            this.api.SendMessage(id, bt2)
+            this.api.sendToPeer(id, bt2)
         })
 
         if (Object.keys(this.meshNetworkState).length > 0) {
@@ -241,7 +260,7 @@ class SimplePeer1 {
                     console.log("err.Error()")
                     return
                 }
-                this.api.SendMessage(id, bt2)
+                this.api.sendToPeer(id, bt2)
                 break
 
             case "pkgStateUpdateReceivedAck":
@@ -267,30 +286,29 @@ class SimplePeer1 {
         }
     }
 
-    // NewSimplePeer1 returns new SimplePeer
-    constructor(label: string, api: MeshAPI) {
+    constructor(label: string, api: SwiftMeshAPIFuncs) {
         this.api = api
         this.Label = label
         this.syncers = {}
         this.meshNetworkState = {}
 
-        api.RegisterMessageHandler((id: NetworkID, data: NetworkMessage) => {
-            this.handleMessage(id, data)
-        })
-        api.RegisterPeerAppearedHandler((id: NetworkID) => {
-            this.handleAppearedPeer(id)
-        })
-        api.RegisterPeerDisappearedHandler((id: NetworkID) => {
-            this.handleDisappearedPeer(id)
-        })
-        api.RegisterTimeTickHandler((ts: NetworkTime) => {
-            this.handleTimeTick(ts)
-        })
+        // api.RegisterMessageHandler((id: NetworkID, data: NetworkMessage) => {
+        //     this.handleMessage(id, data)
+        // })
+        // api.RegisterPeerAppearedHandler((id: NetworkID) => {
+        //     this.handleAppearedPeer(id)
+        // })
+        // api.RegisterPeerDisappearedHandler((id: NetworkID) => {
+        //     this.handleDisappearedPeer(id)
+        // })
+        // api.RegisterTimeTickHandler((ts: NetworkTime) => {
+        //     this.handleTimeTick(ts)
+        // })
     }
 
     // SetState updates this peer user data
     SetState(p: PeerUserState) {
-        this.meshNetworkState[this.api.GetMyID()] = new peerState(p, this.currentTS)
+        this.meshNetworkState[this.api.myID()] = new peerState(p, this.currentTS)
         this.sendDbgData()
 
         let serialisedState = this.meshNetworkState
@@ -305,4 +323,10 @@ class SimplePeer1 {
 
 function randomIntFromInterval(min: number, max: number) {
     return Math.floor(Math.random() * (max - min + 1) + min);
+}
+
+let simplePeerInstance: SimplePeer1
+
+function letsgo(label: string, api: SwiftMeshAPIFuncs) {
+  simplePeerInstance = new SimplePeer1(label, api)
 }

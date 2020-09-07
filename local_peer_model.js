@@ -61,24 +61,23 @@ class peerState {
 }
 // SimplePeer1 provides simplest flood peer strategy
 class SimplePeer1 {
-    // NewSimplePeer1 returns new SimplePeer
     constructor(label, api) {
         this.api = api;
         this.Label = label;
         this.syncers = {};
         this.meshNetworkState = {};
-        api.RegisterMessageHandler((id, data) => {
-            this.handleMessage(id, data);
-        });
-        api.RegisterPeerAppearedHandler((id) => {
-            this.handleAppearedPeer(id);
-        });
-        api.RegisterPeerDisappearedHandler((id) => {
-            this.handleDisappearedPeer(id);
-        });
-        api.RegisterTimeTickHandler((ts) => {
-            this.handleTimeTick(ts);
-        });
+        // api.RegisterMessageHandler((id: NetworkID, data: NetworkMessage) => {
+        //     this.handleMessage(id, data)
+        // })
+        // api.RegisterPeerAppearedHandler((id: NetworkID) => {
+        //     this.handleAppearedPeer(id)
+        // })
+        // api.RegisterPeerDisappearedHandler((id: NetworkID) => {
+        //     this.handleDisappearedPeer(id)
+        // })
+        // api.RegisterTimeTickHandler((ts: NetworkTime) => {
+        //     this.handleTimeTick(ts)
+        // })
     }
     // HandleAppearedPeer implements crowd.MeshActor
     handleAppearedPeer(id) {
@@ -94,7 +93,7 @@ class SimplePeer1 {
                 console.log("err.Error()");
                 return;
             }
-            this.api.SendMessage(id, bt2);
+            this.api.sendToPeer(id, bt2);
         });
         if (Object.keys(this.meshNetworkState).length > 0) {
             let serialisedState = JSON.stringify(this.meshNetworkState);
@@ -174,7 +173,7 @@ class SimplePeer1 {
                     console.log("err.Error()");
                     return;
                 }
-                this.api.SendMessage(id, bt2);
+                this.api.sendToPeer(id, bt2);
                 break;
             case "pkgStateUpdateReceivedAck":
                 let p2 = this.syncers[id];
@@ -198,7 +197,7 @@ class SimplePeer1 {
     }
     // SetState updates this peer user data
     SetState(p) {
-        this.meshNetworkState[this.api.GetMyID()] = new peerState(p, this.currentTS);
+        this.meshNetworkState[this.api.myID()] = new peerState(p, this.currentTS);
         this.sendDbgData();
         let serialisedState = this.meshNetworkState;
         for (let key in this.syncers) {
@@ -209,5 +208,9 @@ class SimplePeer1 {
 }
 function randomIntFromInterval(min, max) {
     return Math.floor(Math.random() * (max - min + 1) + min);
+}
+let simplePeerInstance;
+function letsgo(label, api) {
+    simplePeerInstance = new SimplePeer1(label, api);
 }
 //# sourceMappingURL=local_peer_model.js.map
