@@ -168,7 +168,8 @@ class SimplePeer1 implements SwiftMeshAPICallbacks {
         console.log("err.Error()")
         return
       }
-      this.api.sendToPeer(id, bt2)
+      // this.api.sendToPeer(id, bt2)
+      (self as any).sendToPeer(id, bt2)
     })
 
     if (Object.keys(this.meshNetworkState).length > 0) {
@@ -316,9 +317,8 @@ class SimplePeer1 implements SwiftMeshAPICallbacks {
   }
 
   // SetState updates this peer user data
-  isendmessage(text: NetworkMessage) { this.SetState(new PeerUserState(text)) }
   SetState(p: PeerUserState) {
-    this.meshNetworkState[this.api.myID()] = new peerState(p, this.currentTS)
+    this.meshNetworkState[this.Label] = new peerState(p, this.currentTS)
     this.sendDbgData()
 
     let serialisedState = this.meshNetworkState
@@ -342,8 +342,10 @@ function letsgo(label: string, api: SwiftMeshAPIFuncs) {
   return simplePeerInstance
 }
 
-function tick(ts: NetworkTime) {
+// --
 
+function tick(ts: NetworkTime) {
+  
   if (!!simplePeerInstance) {
     simplePeerInstance.handleTimeTick(ts)
 
@@ -353,14 +355,18 @@ function tick(ts: NetworkTime) {
   return "tick can't find simplePeerInstance "
 }
 
-function didReceiveFromPeer(peerID: NetworkID, data: NetworkMessage) {
-  simplePeerInstance.handleMessage(peerID, data)
-}
-
 function foundPeer(peerID: NetworkID) {
   simplePeerInstance.handleAppearedPeer(peerID)
 }
 
 function lostPeer(peerID: NetworkID) {
   simplePeerInstance.handleDisappearedPeer(peerID)
+}
+
+function didReceiveFromPeer(peerID: NetworkID, data: NetworkMessage) {
+  simplePeerInstance.handleMessage(peerID, data)
+}
+
+function isendmessage(text: NetworkMessage) { 
+  simplePeerInstance.SetState(new PeerUserState(text)) 
 }
