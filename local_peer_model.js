@@ -239,3 +239,9 @@ function didReceiveFromPeer(peerID, data) {
 function isendmessage(text) {
     simplePeerInstance.SetState(new PeerUserState(text));
 }
+function meshNetworkState() {
+    if (!!simplePeerInstance) {
+        return simplePeerInstance.meshNetworkState;
+    }
+    return "global can't find simplePeerInstance.meshNetworkState ";
+}

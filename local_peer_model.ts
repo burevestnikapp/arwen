@@ -370,3 +370,11 @@ function didReceiveFromPeer(peerID: NetworkID, data: NetworkMessage) {
 function isendmessage(text: NetworkMessage) { 
   simplePeerInstance.SetState(new PeerUserState(text)) 
 }
+
+function meshNetworkState() {
+  if (!!simplePeerInstance) {
+    return simplePeerInstance.meshNetworkState
+  }
+
+  return "global can't find simplePeerInstance.meshNetworkState "
+}
